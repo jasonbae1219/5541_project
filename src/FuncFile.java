@@ -1,10 +1,7 @@
-package com.company;
-
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.security.PublicKey;
 
 public class FuncFile {
     GUI gui;
@@ -68,7 +65,7 @@ public class FuncFile {
         fileDialog.setVisible(true);
 
         if (fileDialog.getFile() != null) {
-            fileName = fileDialog.getName();
+            fileName = fileDialog.getFile();
             filePath = fileDialog.getDirectory();
             gui.window.setTitle(fileName);
         }
