@@ -4,6 +4,6 @@ Project - Reporting
 
 | Course Number | Course Title                                          |Programming Language  | Term         |
 | ------------- | ----------------------------------------------------- | -------------------- | -------------|
-| COMP 5541     | Tools and Techniques for Software Engineering         |Java, Jira, Devops    |winter 2021   |
+| COMP 5541     | Tools and Techniques for Software Engineering         |Java, Jira, Devops     |winter 2021   |
 
 
