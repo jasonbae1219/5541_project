@@ -8,18 +8,21 @@ import java.awt.*;
 import java.util.HashMap;
 
 public class GUI extends JFrame {
+    // GUI text components
     JTextPane textPane;
     AbstractDocument doc;
     JTextArea changeLog;
     JScrollPane scrollPane, scrollPaneForLog;
     JSplitPane splitPane;
+
+    // DATA
     String newline = "\n";
     HashMap<Object, Action> actions;
 
     // top menu bar
     JMenuBar menuBar;
 
-    // file menu
+    // file options
     FileManager file = new FileManager(this);
     protected FileManager.NewAction newAction;
     protected FileManager.OpenAction openAction;
@@ -27,11 +30,12 @@ public class GUI extends JFrame {
     protected FileManager.SaveAsAction saveAsAction;
     protected FileManager.ExitAction exitAction;
 
-    // undo helpers
+    // edit (undo/redo) options
     protected SmartUndoManager um = new SmartUndoManager(this);
     protected SmartUndoManager.UndoAction undoAction;
     protected SmartUndoManager.RedoAction redoAction;
 
+    // constructor -----------------------------------------------
     public GUI() {
         // set main window
         super("Smart Text Editor"); // design: name
@@ -45,10 +49,10 @@ public class GUI extends JFrame {
         createMenuBar();
         setVisible(true);
 
-        // start listening for edits
-        addListeners();
+        addListeners(); // start listening for edits
     }
 
+    // helper methods ---------------------------------------------
     public void createTextPane() {
         textPane = new JTextPane();
         StyledDocument styleDoc = textPane.getStyledDocument();
@@ -90,6 +94,24 @@ public class GUI extends JFrame {
         menuBar.add(editMenu);
         menuBar.add(styleMenu);
         this.setJMenuBar(menuBar);
+    }
+
+    protected JMenu createFileMenu() {
+        JMenu menu = new JMenu("File");
+
+        newAction = file.new NewAction();
+        openAction = file.new OpenAction();
+        saveAction = file.new SaveAction();
+        saveAsAction = file.new SaveAsAction();
+        exitAction = file.new ExitAction();
+
+        menu.add(newAction);
+        menu.add(openAction);
+        menu.add(saveAction);
+        menu.add(saveAsAction);
+        menu.add(exitAction);
+
+        return menu;
     }
 
     protected JMenu createEditMenu() {
@@ -163,33 +185,17 @@ public class GUI extends JFrame {
         return actions.get(name);
     }
 
-    protected JMenu createFileMenu() {
-        JMenu menu = new JMenu("File");
-
-        newAction = file.new NewAction();
-        openAction = file.new OpenAction();
-        saveAction = file.new SaveAction();
-        saveAsAction = file.new SaveAsAction();
-        exitAction = file.new ExitAction();
-
-        menu.add(newAction);
-        menu.add(openAction);
-        menu.add(saveAction);
-        menu.add(saveAsAction);
-        menu.add(exitAction);
-
-        return menu;
-    }
-
     // listeners
     public void addListeners(){
+        //doc.addUndoableEditListener(um);
         doc.addUndoableEditListener(new MyUndoableEditListener());
-        doc.addDocumentListener(new MyDocumentListener());
+        //doc.addDocumentListener(new MyDocumentListener());
     }
 
     protected class MyUndoableEditListener implements UndoableEditListener {
         public void undoableEditHappened(UndoableEditEvent e) {
             um.addEdit(e.getEdit());
+            changeLog.append(e.getEdit().getPresentationName() + newline);
             undoAction.updateUndoState();
             redoAction.updateRedoState();
         }
@@ -205,8 +211,7 @@ public class GUI extends JFrame {
             changeLog.append(e.getType().toString() + ": " +
                     changeLength + " character" +
                     ((changeLength == 1) ? ". " : "s. ") +
-                    " Text length = " + document.getLength() +
-                    "." + newline);
+                    newline);
         }
     }
 }
