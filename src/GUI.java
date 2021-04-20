@@ -4,16 +4,30 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.*;
+
+
+
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GUI extends JFrame {
     // GUI text components
-    JTextPane textPane;
+    public static JTextPane textPane;
     AbstractDocument doc;
     JTextArea changeLog;
     JScrollPane scrollPane, scrollPaneForLog;
     JSplitPane splitPane;
+    public static ArrayList<String> ten_Edit = new ArrayList<String>();
+    String str;
+    public static String[] str2, ten;
+    public static int temp_size = 0;
+    public static ArrayList<String> ten_edit = new ArrayList<>();
+    public static ArrayList<String> undo_ten_edit = new ArrayList<>();
+    public static int size= 0, size_temp=0;
+    public static ArrayList<Integer> index = new ArrayList<Integer>(1000);
+    public static ArrayList<Integer> index_undo = new ArrayList<Integer>(100);
+
 
     // DATA
     String newline = "\n";
@@ -188,8 +202,11 @@ public class GUI extends JFrame {
     // listeners
     public void addListeners(){
         //doc.addUndoableEditListener(um);
-        doc.addUndoableEditListener(new MyUndoableEditListener());
+        //doc.addUndoableEditListener(new MyUndoableEditListener());
         //doc.addDocumentListener(new MyDocumentListener());
+        textPane.getDocument().addUndoableEditListener(new MyUndoableEditListener());
+        textPane.getDocument().addDocumentListener(new MyDocumentListener());
+        textPane.getDocument().putProperty("name", "Text Field");
     }
 
     protected class MyUndoableEditListener implements UndoableEditListener {
@@ -202,16 +219,103 @@ public class GUI extends JFrame {
     }
 
     protected class MyDocumentListener implements DocumentListener {
+        public <T> ArrayList<T> removeDuplicates(ArrayList<T> list)
+        {
+
+            // Create a new ArrayList
+            ArrayList<T> newList = new ArrayList<T>();
+
+            // Traverse through the first list
+            for (T element : list) {
+
+                // If this element is not present in newList
+                // then add it
+                if (!newList.contains(element)) {
+
+                    newList.add(element);
+                }
+            }
+
+            // return the new list
+            return newList;
+        }
         public void insertUpdate(DocumentEvent e) { displayEditInfo(e);}
         public void removeUpdate(DocumentEvent e) { displayEditInfo(e);}
         public void changedUpdate(DocumentEvent e) { displayEditInfo(e);}
         private void displayEditInfo(DocumentEvent e) {
-            Document document = e.getDocument();
-            int changeLength = e.getLength();
-            changeLog.append(e.getType().toString() + ": " +
-                    changeLength + " character" +
-                    ((changeLength == 1) ? ". " : "s. ") +
-                    newline);
+            //Document document = e.getDocument();
+
+            str = textPane.getText();
+            System.out.println("ten_edit"+ ten_edit);
+            ten = str.split("\\s+");
+            ArrayList<String> temp_ten_edit = new ArrayList<>();
+            int temp_size = ten.length;
+
+
+            //convert string to listarray
+            for (int i =0;i<temp_size;i++) {
+                temp_ten_edit.add(ten[i]);
+                size_temp = temp_ten_edit.size();
+            }
+            // Check previous == current, if false save the index into arraylist and remove duplicates and only store 10 first come first out
+            if (ten_edit.size() < temp_ten_edit.size() || ten_edit.size() == temp_ten_edit.size()) {
+                System.out.println("ten_edit.size()" + ten_edit.size() + " < temp_ten_edit.size( )" + temp_ten_edit.size( ) + "True");
+                for (int i = 0; i<ten_edit.size(); i++) {
+                    System.out.println(i);
+                    if (ten_edit.contains(temp_ten_edit.get(i))== false) {
+                        System.out.println("not equal"  + i );
+                        index.add(i);
+                        index = removeDuplicates(index);
+                        if (index.size() > 10) {
+                            index.remove(0);
+                        }
+                    }
+
+                }
+            }
+            else if (ten_edit.size() > temp_ten_edit.size()|| ten_edit.size() == temp_ten_edit.size()) {
+                System.out.println("ten_edit.size() > temp_ten_edit.size( )" + "True");
+                index.remove(index.size()-1);
+                for (int i = 0; i<temp_ten_edit.size(); i++) {
+                    System.out.println(i);
+
+                    if (temp_ten_edit.contains(ten_edit.get(i))== false) {
+                        System.out.println("not equal"  + i );
+                        index.add(i);
+                        index = removeDuplicates(index);
+                        if (index.size() > 10) {
+                            index.remove(0);
+                        }
+                    }
+
+                }
+            }
+
+
+            ArrayList<String> undo_ten_edit_temp = new ArrayList<>();
+            // Store the String for the correspond last ten edit indexes
+
+            for (int i = 0; i<index.size(); i++) {
+                //undo_ten_edit_temp.add(ten_edit.get(index.get(i)));
+            }
+            undo_ten_edit= undo_ten_edit_temp;
+            ten_edit = temp_ten_edit;
+            size= ten_edit.size();
+            System.out.println("undo_ten_edit" + undo_ten_edit);
+            System.out.println(index);
+            System.out.println("temp_ten_edit"+ temp_ten_edit);
+            //Print out the change in the log
+            if (index.size()-1 != -1) {
+                for( int i=0;i < index.size(); i++) {
+                    changeLog.append((i+1) +". "+ "index" + index.get(i) + ": " +
+                            (ten_edit.get(i) +
+                                    newline));
+                }
+            }
         }
     }
+
+
+
+
 }
