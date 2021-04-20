@@ -4,10 +4,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.*;
-
-
-
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,15 +18,18 @@ public class GUI extends JFrame {
     JScrollPane scrollPane, scrollPaneForLog;
     JSplitPane splitPane;
     public static ArrayList<String> ten_Edit = new ArrayList<String>();
-    String str;
+    public final static int ONE_SECOND = 1000;
+    private static Timer timer;
+
+    public static String str, str_timer, str_timer2 = "";
     public static String[] str2, ten;
     public static int temp_size = 0;
     public static ArrayList<String> ten_edit = new ArrayList<>();
     public static ArrayList<String> undo_ten_edit = new ArrayList<>();
+    public static ArrayList<String> undo_timer = new ArrayList<>();
     public static int size= 0, size_temp=0;
     public static ArrayList<Integer> index = new ArrayList<Integer>(1000);
     public static ArrayList<Integer> index_undo = new ArrayList<Integer>(100);
-
 
     // DATA
     String newline = "\n";
@@ -48,6 +50,7 @@ public class GUI extends JFrame {
     protected SmartUndoManager um = new SmartUndoManager(this);
     protected SmartUndoManager.UndoAction undoAction;
     protected SmartUndoManager.RedoAction redoAction;
+
 
     // constructor -----------------------------------------------
     public GUI() {
@@ -207,6 +210,41 @@ public class GUI extends JFrame {
         textPane.getDocument().addUndoableEditListener(new MyUndoableEditListener());
         textPane.getDocument().addDocumentListener(new MyDocumentListener());
         textPane.getDocument().putProperty("name", "Text Field");
+        int delay = 1000; //milliseconds
+        ActionListener taskPerformer = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                System.out.println("1sec");
+
+                str_timer =  textPane.getText();
+                String str_remain;
+                if (str_timer2.length() < str_timer.length()) {
+                    str_remain = str_timer.replace(str_timer2,"");
+                }
+                else {
+                    str_remain = str_timer2.replace(str_timer,"");
+
+                }
+
+                System.out.println("str_timer" + str_timer);
+                System.out.println("str_timer2" + str_timer2);
+                if (str_remain != "") {
+
+                    undo_timer.add(str_remain);
+                }
+                if (undo_timer.size() >10) {
+                    undo_timer.remove(0);
+                }
+                System.out.println("str_remain" + str_remain);
+
+                System.out.println("undo_timer" + undo_timer);
+
+                str_timer2 = str_timer;
+
+
+
+            }
+        };
+        new Timer(delay, taskPerformer).start();
     }
 
     protected class MyUndoableEditListener implements UndoableEditListener {
@@ -243,75 +281,6 @@ public class GUI extends JFrame {
         public void removeUpdate(DocumentEvent e) { displayEditInfo(e);}
         public void changedUpdate(DocumentEvent e) { displayEditInfo(e);}
         private void displayEditInfo(DocumentEvent e) {
-            //Document document = e.getDocument();
-
-            str = textPane.getText();
-            System.out.println("ten_edit"+ ten_edit);
-            ten = str.split("\\s+");
-            ArrayList<String> temp_ten_edit = new ArrayList<>();
-            int temp_size = ten.length;
-
-
-            //convert string to listarray
-            for (int i =0;i<temp_size;i++) {
-                temp_ten_edit.add(ten[i]);
-                size_temp = temp_ten_edit.size();
-            }
-            // Check previous == current, if false save the index into arraylist and remove duplicates and only store 10 first come first out
-            if (ten_edit.size() < temp_ten_edit.size() || ten_edit.size() == temp_ten_edit.size()) {
-                System.out.println("ten_edit.size()" + ten_edit.size() + " < temp_ten_edit.size( )" + temp_ten_edit.size( ) + "True");
-                for (int i = 0; i<ten_edit.size(); i++) {
-                    System.out.println(i);
-                    if (ten_edit.contains(temp_ten_edit.get(i))== false) {
-                        System.out.println("not equal"  + i );
-                        index.add(i);
-                        index = removeDuplicates(index);
-                        if (index.size() > 10) {
-                            index.remove(0);
-                        }
-                    }
-
-                }
-            }
-            else if (ten_edit.size() > temp_ten_edit.size()|| ten_edit.size() == temp_ten_edit.size()) {
-                System.out.println("ten_edit.size() > temp_ten_edit.size( )" + "True");
-                index.remove(index.size()-1);
-                for (int i = 0; i<temp_ten_edit.size(); i++) {
-                    System.out.println(i);
-
-                    if (temp_ten_edit.contains(ten_edit.get(i))== false) {
-                        System.out.println("not equal"  + i );
-                        index.add(i);
-                        index = removeDuplicates(index);
-                        if (index.size() > 10) {
-                            index.remove(0);
-                        }
-                    }
-
-                }
-            }
-
-
-            ArrayList<String> undo_ten_edit_temp = new ArrayList<>();
-            // Store the String for the correspond last ten edit indexes
-
-            for (int i = 0; i<index.size(); i++) {
-                //undo_ten_edit_temp.add(ten_edit.get(index.get(i)));
-            }
-            undo_ten_edit= undo_ten_edit_temp;
-            ten_edit = temp_ten_edit;
-            size= ten_edit.size();
-            System.out.println("undo_ten_edit" + undo_ten_edit);
-            System.out.println(index);
-            System.out.println("temp_ten_edit"+ temp_ten_edit);
-            //Print out the change in the log
-            if (index.size()-1 != -1) {
-                for( int i=0;i < index.size(); i++) {
-                    changeLog.append((i+1) +". "+ "index" + index.get(i) + ": " +
-                            (ten_edit.get(i) +
-                                    newline));
-                }
-            }
         }
     }
 
